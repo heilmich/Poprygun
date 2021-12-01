@@ -5,7 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Poprygun"
         mc:Ignorable="d"
-        Title="MainWindow" MinHeight="600" MinWidth="800">
+        Title="MainWindow" MinHeight="600" MinWidth="800" FontFamily="Comic Sans MS">
+    <Window.Resources>
+        <local:SellsConverter x:Key="SellsConverter" />
+        <local:DiscountConverter x:Key="DiscountConverter" />
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.8*"/>
@@ -23,31 +27,48 @@
             <RowDefinition/>
             <RowDefinition Height="0.5*"/>
         </Grid.RowDefinitions>
-        <TextBox Name="search_field" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Height="40" Margin="0,0,20,0"></TextBox>
-        <ComboBox Name="sortCB" Grid.Row="1" Grid.Column="3" Height="40" Margin="0,0,20,0">
+        <TextBox Name="search_field" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Height="40" ></TextBox>
+        <ComboBox Name="sortCB" Grid.Row="1" Grid.Column="3" Height="40" Margin="20,0,0,0">
             
         </ComboBox>
-        <ComboBox Name="filterCB" Grid.Row="1" Grid.Column="4" Height="40" Margin="0,0,20,0">
+        <ComboBox Name="filterCB" Grid.Row="1" Grid.Column="4" Height="40" Margin="20,0,0,0">
             
         </ComboBox>
-        <ListView Name="dataList" ItemsSource="{Binding agents}" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Grid.RowSpan="3">
+        <ListView Name="dataList" ItemsSource="{Binding AgentList}" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Grid.RowSpan="3"  Background="#F9969E">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
+                    <Setter Property="Margin" Value="5"></Setter>
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Border BorderThickness="1" BorderBrush="Black" HorizontalAlignment="Stretch">
-                        <StackPanel Height="80" Orientation="Horizontal" Margin="10">
-                            <Image Width="100"></Image>
-                            <StackPanel>
-                                <TextBlock Name="typeName">
+                <DataTemplate x:Name="agentTemplate">
+                    <Border BorderThickness="1" BorderBrush="Black" Width="Auto" Background="#fff">
+                        <Grid Height="80" Margin="10" Width="Auto" >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Image Width="100" Grid.Column="0"></Image>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Name="TypeName" FontSize="16">
                                     <Run Text="{Binding AgentType.Title}"></Run>
                                     <Run Text=" | "></Run>
                                     <Run Text="{Binding Title}"></Run>
                                 </TextBlock>
-                                <TextBlock Name="sells" Text="{Binding sells}"></TextBlock>
-                                <TextBlock Name="phone" Text="{Binding Phone}"></TextBlock>
-                                <TextBlock Name="priority" Text="{Binding Priority}"></TextBlock>
+                                <TextBlock Text="{Binding ProductSale, Converter={StaticResource SellsConverter}}"></TextBlock>
+                                <TextBlock Name="Phone" Text="{Binding Phone}"></TextBlock>
+                                <TextBlock  Name="Priority">
+                                    <Run Text="Приоритетность: "></Run>
+                                    <Run Text="{Binding Priority}"></Run>
+                                </TextBlock>
                             </StackPanel>
-                            <TextBlock Name="percent" Text="{Binding percent}"></TextBlock>
-                        </StackPanel>
+                            <TextBlock Name="Discount"  Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="16">
+                                <Run Text="{Binding ProductSale, Converter={StaticResource DiscountConverter}}"/>
+                                <Run Text="%"/>
+                            </TextBlock>
+                        </Grid>
                         
                     </Border>
                 </DataTemplate>
