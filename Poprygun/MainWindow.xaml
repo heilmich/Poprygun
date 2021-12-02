@@ -9,19 +9,15 @@
     <Window.Resources>
         <local:SellsConverter x:Key="SellsConverter" />
         <local:DiscountConverter x:Key="DiscountConverter" />
-        <local:ImageConverter x:Key="ImageConverter"/>
-        <Style x:Key="PageLabel">
-            
-        </Style>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.4*"/>
+            <ColumnDefinition Width="0.8*"/>
             <ColumnDefinition/>
             <ColumnDefinition/>
             <ColumnDefinition/>
             <ColumnDefinition/>
-            <ColumnDefinition Width="0.4*"/>
+            <ColumnDefinition Width="0.8*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="0.4*"/>
@@ -38,7 +34,7 @@
         <ComboBox Name="filterCB" Grid.Row="1" Grid.Column="4" Height="40" Margin="20,0,0,0">
             
         </ComboBox>
-        <ListView Name="dataList"  Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Grid.RowSpan="3"  Background="#F9969E">
+        <ListView Name="dataList" ItemsSource="{Binding AgentList}" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Grid.RowSpan="3"  Background="#F9969E">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
@@ -54,14 +50,14 @@
                                 <ColumnDefinition Width="4*"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
-                            <Image Source="{Binding Image, Converter={StaticResource ImageConverter}, IsAsync=True}" Width="100" Grid.Column="0"></Image>
+                            <Image Width="100" Grid.Column="0"></Image>
                             <StackPanel Grid.Column="1">
                                 <TextBlock Name="TypeName" FontSize="16">
                                     <Run Text="{Binding AgentType.Title}"></Run>
                                     <Run Text=" | "></Run>
                                     <Run Text="{Binding Title}"></Run>
                                 </TextBlock>
-                                <TextBlock Text="{Binding ProductSale, Converter={StaticResource SellsConverter}, IsAsync=True}"></TextBlock>
+                                <TextBlock Text="{Binding ProductSale, Converter={StaticResource SellsConverter}}"></TextBlock>
                                 <TextBlock Name="Phone" Text="{Binding Phone}"></TextBlock>
                                 <TextBlock  Name="Priority">
                                     <Run Text="Приоритетность: "></Run>
@@ -69,7 +65,7 @@
                                 </TextBlock>
                             </StackPanel>
                             <TextBlock Name="Discount"  Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="16">
-                                <Run Text="{Binding ProductSale, Converter={StaticResource DiscountConverter}, IsAsync=True}"/>
+                                <Run Text="{Binding ProductSale, Converter={StaticResource DiscountConverter}}"/>
                                 <Run Text="%"/>
                             </TextBlock>
                         </Grid>
@@ -78,8 +74,5 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <StackPanel Name="pageList" Grid.Row="5" Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right">
-            
-        </StackPanel>
     </Grid>
 </Window>
