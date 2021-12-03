@@ -10,9 +10,16 @@
         <local:SellsConverter x:Key="SellsConverter" />
         <local:DiscountConverter x:Key="DiscountConverter" />
         <local:ImageConverter x:Key="ImageConverter"/>
-        <Style x:Key="PageLabel">
-            
+        <Style x:Key="PageLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="5"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#43DCFE"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
+
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -38,7 +45,7 @@
         <ComboBox Name="filterCB" Grid.Row="1" Grid.Column="4" Height="40" Margin="20,0,0,0">
             
         </ComboBox>
-        <ListView Name="dataList"  Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Grid.RowSpan="3"  Background="#F9969E">
+        <ListView Name="dataList" ItemsSource="{Binding currentList, Mode=OneWay}" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Grid.RowSpan="3"  Background="#F9969E">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
@@ -61,7 +68,7 @@
                                     <Run Text=" | "></Run>
                                     <Run Text="{Binding Title}"></Run>
                                 </TextBlock>
-                                <TextBlock Text="{Binding ProductSale, Converter={StaticResource SellsConverter}, IsAsync=True}"></TextBlock>
+                                <TextBlock Text="{Binding ProductSale, Converter={StaticResource SellsConverter}}"></TextBlock>
                                 <TextBlock Name="Phone" Text="{Binding Phone}"></TextBlock>
                                 <TextBlock  Name="Priority">
                                     <Run Text="Приоритетность: "></Run>
@@ -78,8 +85,12 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <StackPanel Name="pageList" Grid.Row="5" Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right">
-            
+        <StackPanel Grid.Row="5" Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right">
+            <TextBlock Name="prevPage" Style="{StaticResource PageLabel}" Text="&lt;" MouseLeftButtonDown="prevPageClick"></TextBlock>
+            <StackPanel Name="pageList" Orientation="Horizontal">
+                
+            </StackPanel>
+            <TextBlock Name="nextPage" Style="{StaticResource PageLabel}" Text=">" MouseLeftButtonDown="nextPageClick"></TextBlock>
         </StackPanel>
     </Grid>
 </Window>

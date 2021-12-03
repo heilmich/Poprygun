@@ -87,6 +87,7 @@ namespace Poprygun
     {
         public int pageIndex = 1;                                   // индекс текущей страницы
         public int pageSize = 10;                                   // размер страницы
+        public int visiblePagesCount = 4;                           // количество отображаемых страниц в pageList
         public int totalItems;                                      // кол-во объектов
         public int totalPages                                      // кол-во страниц
         {
@@ -99,13 +100,14 @@ namespace Poprygun
         
         public static List<Agent> agentList = new List<Agent>();    // список агентов
         public Entities db = new Entities();                        // создание контекста базы данных
-        public PageInfo pageInfo = new PageInfo();           
-            
+        public PageInfo pageInfo = new PageInfo();
+        public int sortIndex = 0;                                   // индекс сортировки
+        public int sortAsc = 1;                                     // порядок сортировки, 1 - по возрастанию, 0 - по убыванию
+        public int filterIndex = 0;                                 // индекс фильтра, 0 - без фильтрации
         
         public MainWindow()
         {
             InitializeComponent();
-            UpdatePage();
             UpdatePage();
         }
 
@@ -121,17 +123,13 @@ namespace Poprygun
         public void UpdatePage() 
         {
             var currentList = TakeData();
+            pageInfo.totalItems = db.Agent.Count();
             // var currentList = agentList.Skip(pageInfo.pageIndex).Take(pageInfo.pageSize);
 
-            for (int i = pageInfo.pageIndex; i <= pageInfo.totalPages; i++) 
-            {
-                TextBlock page = new TextBlock();
-                page.Text = Convert.ToString(i);
-                pageList.Children.Add(page);
-                
-            }
+            Pagination();
 
             dataList.ItemsSource = currentList;
+            
         }
 
         public List<Agent> TakeData() 
@@ -139,7 +137,29 @@ namespace Poprygun
             return db.Agent.OrderBy( p => p.ID).Skip((pageInfo.pageIndex - 1) * pageInfo.pageSize).Take(pageInfo.pageSize).ToList();      
         }
 
+        public void Pagination() 
+        {
+            pageList.Children.Clear();
+            for (int i = pageInfo.pageIndex; i <= pageInfo.totalPages; i++)
+            {
+                if (i >= pageInfo.pageIndex && i <= pageInfo.pageIndex + 3)
+                {
+                    TextBlock page = new TextBlock();
+                    page.Text = Convert.ToString(i);
+                    page.Style = this.FindResource("PageLabel") as Style;
+                    page.MouseLeftButtonDown += selectPageClick;
+                    if (i == pageInfo.pageIndex) page.TextDecorations = TextDecorations.Underline;
+                    pageList.Children.Add(page);
+                }
+            }
+        }
 
+        public void selectPageClick(object sender, MouseButtonEventArgs e) 
+        {
+            pageInfo.pageIndex = Convert.ToInt32(((TextBlock)sender).Text);
+            UpdatePage();
+            
+        }
 
         public void SerializeImages(int num)
         {
@@ -153,10 +173,9 @@ namespace Poprygun
                 fs.Read(array, 0, array.Length);
 
                 pic = JsonSerializer.Serialize(array);
-                string search_str = "agent_" + Convert.ToString(num) + ".png";
                 using (Entities db = new Entities())
                 {
-                    Agent agent = db.Agent.Where(p => p.Logo == search_str).FirstOrDefault();
+                    Agent agent = db.Agent.Where(p => p.Logo == "agent_" + Convert.ToString(num) + ".png").FirstOrDefault();
                     if (agent == null) return;
                     agent.Image = pic;
                     
@@ -181,12 +200,31 @@ namespace Poprygun
             byte[] array = System.Convert.FromBase64String(JsonSerializer.Deserialize<string>((string)value));
             MemoryStream ms = new MemoryStream(array, 0, array.Length);
             BitmapImage img = new BitmapImage();
+
             img.BeginInit();
             img.StreamSource = ms;
             img.CacheOption = BitmapCacheOption.OnLoad;
             img.EndInit();
             img.Freeze();
             return img;
+        }
+
+        private void prevPageClick(object sender, MouseButtonEventArgs e)
+        {
+            if (pageInfo.pageIndex != 0) 
+            {
+                pageInfo.pageIndex -= 1;
+                UpdatePage();
+            }
+        }
+
+        private void nextPageClick(object sender, MouseButtonEventArgs e)
+        {
+            if (pageInfo.pageIndex != pageInfo.totalPages)
+            {
+                pageInfo.pageIndex += 1;
+                UpdatePage();
+            }
         }
     }
 }
