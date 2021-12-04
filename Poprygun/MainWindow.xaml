@@ -12,7 +12,7 @@
         <local:ImageConverter x:Key="ImageConverter"/>
         <Style x:Key="PageLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="16"/>
-            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="7"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#43DCFE"/>
@@ -38,14 +38,22 @@
             <RowDefinition/>
             <RowDefinition Height="0.5*"/>
         </Grid.RowDefinitions>
-        <TextBox Name="search_field" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Height="40" ></TextBox>
-        <ComboBox Name="sortCB" Grid.Row="1" Grid.Column="3" Height="40" Margin="20,0,0,0">
-            
+        <TextBox Name="search_field" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Height="40" KeyDown="search_field_KeyDown" FontSize="14" VerticalContentAlignment="Center"></TextBox>
+        <ComboBox Name="sortCB" SelectionChanged="SortChanged" SelectedIndex="0" Grid.Row="1" Grid.Column="3" Height="40" Margin="20,0,0,0">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <ComboBoxItem  Content="{Binding SortTitle}"></ComboBoxItem>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
         </ComboBox>
-        <ComboBox Name="filterCB" Grid.Row="1" Grid.Column="4" Height="40" Margin="20,0,0,0">
-            
+        <ComboBox Name="filterCB"  ItemsSource="{Binding agentTypes}" SelectionChanged="FilterChanged" SelectedIndex="0" Grid.Row="1" Grid.Column="4" Height="40" Margin="20,0,0,0">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <ComboBoxItem Content="{Binding Title}"></ComboBoxItem>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
         </ComboBox>
-        <ListView Name="dataList" ItemsSource="{Binding currentList, Mode=OneWay}" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Grid.RowSpan="3"  Background="#F9969E">
+        <ListView Name="dataList" ItemsSource="{Binding currentList, Mode=OneWay, IsAsync=True}" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Grid.RowSpan="3"  Background="#F9969E">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
@@ -64,15 +72,15 @@
                             <Image Source="{Binding Image, Converter={StaticResource ImageConverter}, IsAsync=True}" Width="100" Grid.Column="0"></Image>
                             <StackPanel Grid.Column="1">
                                 <TextBlock Name="TypeName" FontSize="16">
-                                    <Run Text="{Binding AgentType.Title}"></Run>
+                                    <Run Text="{Binding AgentType.Title, IsAsync=True}"></Run>
                                     <Run Text=" | "></Run>
-                                    <Run Text="{Binding Title}"></Run>
+                                    <Run Text="{Binding Title, IsAsync=True}"></Run>
                                 </TextBlock>
-                                <TextBlock Text="{Binding ProductSale, Converter={StaticResource SellsConverter}}"></TextBlock>
+                                <TextBlock Text="{Binding ProductSale, Converter={StaticResource SellsConverter}, IsAsync=True}"></TextBlock>
                                 <TextBlock Name="Phone" Text="{Binding Phone}"></TextBlock>
                                 <TextBlock  Name="Priority">
                                     <Run Text="Приоритетность: "></Run>
-                                    <Run Text="{Binding Priority}"></Run>
+                                    <Run Text="{Binding Priority, IsAsync=True}"></Run>
                                 </TextBlock>
                             </StackPanel>
                             <TextBlock Name="Discount"  Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="16">

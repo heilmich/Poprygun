@@ -16,10 +16,9 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Globalization;
 using System.ComponentModel;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.Json;
 using System.Drawing;
-
+using System.Runtime.CompilerServices;
 
 
 namespace Poprygun
@@ -95,52 +94,142 @@ namespace Poprygun
         }
     }
 
+    public class SortItem : INotifyPropertyChanged
+    {
+        private string sortDir;
+        public string SortDir                                             // направление сортировки
+        {
+            get
+            {  return sortDir; }
+            set
+            {
+                if (sortDir != value)
+                {
+                    sortDir = value;
+                    OnPropertyChanged("sortDir");
+                }
+            }
+        }
+        private string sortProperty;                                        // свойство сортировки
+        public string SortProperty                                             // направление сортировки
+        {
+            get
+            { return sortProperty; }
+            set
+            {
+                if (sortProperty != value)
+                {
+                    sortProperty = value;
+                    OnPropertyChanged("sortProperty");
+                }
+            }
+        }
+        private string sortTitle;
+        public string SortTitle
+        {
+            get
+            { return sortTitle; }
+            set
+            {
+                if (sortTitle != value)
+                {
+                    sortTitle = value;
+                    OnPropertyChanged("sortTitle");
+                }
+            }
+        }
+        public SortItem(string dir, string prop, string title) 
+        {
+            sortDir = dir;
+            sortProperty = prop;
+            sortTitle = title;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void OnPropertyChanged([CallerMemberName] string prop = "")
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(prop));
+        }
+    }
+
     public partial class MainWindow : Window
     {
-        
+
         public static List<Agent> agentList = new List<Agent>();    // список агентов
         public Entities db = new Entities();                        // создание контекста базы данных
-        public PageInfo pageInfo = new PageInfo();
-        public int sortIndex = 0;                                   // индекс сортировки
-        public int sortAsc = 1;                                     // порядок сортировки, 1 - по возрастанию, 0 - по убыванию
+        public PageInfo pageInfo = new PageInfo();                  // объект pageInfo с информацией о страницах
+        public SortItem currentSort;                                // индекс сортировки
         public int filterIndex = 0;                                 // индекс фильтра, 0 - без фильтрации
+        public string searchQuery;                             // поисковый запрос
+        public List<AgentType> agentTypes = new List<AgentType>();  // лист с типами агентов
+        public List<SortItem> sortList = new List<SortItem>
+        {
+            new SortItem("ASC", "ID", "Без сортировки"),
+            new SortItem("ASC", "Title", "По возрастанию: наименование"),
+            new SortItem("DESC", "Title", "По убыванию: наименование"),
+            new SortItem("ASC", "ID", "По возрастанию: скидка"),
+            new SortItem("DESC", "ID", "По убыванию: скидка"),
+            new SortItem("ASC", "Priority", "По возрастанию: приоритет"),
+            new SortItem("DESC", "Priority", "По убыванию: приоритет")
+        };
         
         public MainWindow()
         {
             InitializeComponent();
+            sortCB.ItemsSource = sortList;
             UpdatePage();
+            TakeAgentTypesList();
         }
 
-        public async void TakeAgentList()
+        public async void TakeAgentTypesList() 
         {
-            await db.Agent.ForEachAsync(p =>
-               {
-                   agentList.Add(p);
-               });
-            dataList.ItemsSource = agentList;
+            AgentType type = new AgentType { ID = 0, Title = "Все типы" };
+            agentTypes.Add(type);
+            await db.AgentType.ForEachAsync(p => 
+            { 
+                agentTypes.Add(p); 
+            });
+            
+            filterCB.ItemsSource = agentTypes;
         }
 
         public void UpdatePage() 
         {
-            var currentList = TakeData();
-            pageInfo.totalItems = db.Agent.Count();
-            // var currentList = agentList.Skip(pageInfo.pageIndex).Take(pageInfo.pageSize);
-
+            dataList.ItemsSource = TakeData();
             Pagination();
-
-            dataList.ItemsSource = currentList;
-            
         }
 
         public List<Agent> TakeData() 
         {
-            return db.Agent.OrderBy( p => p.ID).Skip((pageInfo.pageIndex - 1) * pageInfo.pageSize).Take(pageInfo.pageSize).ToList();      
+            if (filterIndex == 0)
+            {
+                return db.Agent.SqlQuery($"SELECT * FROM Agent " +
+                        $"WHERE ( Agent.Title LIKE N'%{searchQuery}%' OR Agent.Email LIKE N'%{searchQuery}%' ) " +
+                        $"ORDER BY Agent.{currentSort.SortProperty} {currentSort.SortDir} " +
+                        $"OFFSET {(pageInfo.pageIndex - 1) * pageInfo.pageSize} ROWS " +
+                        $"FETCH NEXT {pageInfo.pageSize} ROWS ONLY; ").ToList();
+            }
+            else 
+            {
+                return db.Agent.SqlQuery($"SELECT * FROM Agent " +
+                        $"WHERE Agent.AgentTypeID = {filterIndex} AND ( Agent.Title LIKE N'%{searchQuery}%' OR Agent.Email LIKE N'%{searchQuery}%' ) " +
+                        $"ORDER BY Agent.{currentSort.SortProperty} {currentSort.SortDir} " +
+                        $"OFFSET {(pageInfo.pageIndex - 1) * pageInfo.pageSize} ROWS " +
+                        $"FETCH NEXT {pageInfo.pageSize} ROWS ONLY; ").ToList();
+            }
         }
 
         public void Pagination() 
         {
-            pageList.Children.Clear();
-            for (int i = pageInfo.pageIndex; i <= pageInfo.totalPages; i++)
+            pageList.Children.Clear(); // чистим список элементов
+
+            // расчёт кол-ва элементов в запросе
+            if (filterIndex == 0) pageInfo.totalItems = db.Agent.Count();
+            else pageInfo.totalItems = db.Agent.SqlQuery($"SELECT * FROM Agent a " + $"WHERE a.AgentTypeID = {filterIndex} ").ToList().Count();
+
+
+            for (int i = pageInfo.pageIndex; i <= pageInfo.totalPages; i++) // рассчёт кол-ва страниц в списке страниц
             {
                 if (i >= pageInfo.pageIndex && i <= pageInfo.pageIndex + 3)
                 {
@@ -149,18 +238,52 @@ namespace Poprygun
                     page.Style = this.FindResource("PageLabel") as Style;
                     page.MouseLeftButtonDown += selectPageClick;
                     if (i == pageInfo.pageIndex) page.TextDecorations = TextDecorations.Underline;
+
                     pageList.Children.Add(page);
                 }
             }
-        }
 
-        public void selectPageClick(object sender, MouseButtonEventArgs e) 
+
+        }
+        private void search_field_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            searchQuery = search_field.Text;
+            UpdatePage();
+        }
+        private void FilterChanged(object sender, SelectionChangedEventArgs e)
+        {
+            pageInfo.pageIndex = 1;
+            filterIndex = ((ComboBox)sender).SelectedIndex;
+            UpdatePage();
+        }
+        private void SortChanged(object sender, SelectionChangedEventArgs e)
+        {
+            currentSort = (SortItem)((ComboBox)sender).SelectedItem;
+            UpdatePage();
+        }
+        private void prevPageClick(object sender, MouseButtonEventArgs e)
+        {
+            if (pageInfo.pageIndex != 0)
+            {
+                pageInfo.pageIndex -= 1;
+                UpdatePage();
+            }
+        }
+        private void nextPageClick(object sender, MouseButtonEventArgs e)
+        {
+            if (pageInfo.pageIndex != pageInfo.totalPages)
+            {
+                pageInfo.pageIndex += 1;
+                UpdatePage();
+            }
+        }
+        private void selectPageClick(object sender, MouseButtonEventArgs e)
         {
             pageInfo.pageIndex = Convert.ToInt32(((TextBlock)sender).Text);
             UpdatePage();
-            
-        }
 
+        }
         public void SerializeImages(int num)
         {
             string path = @"D:\agents\";
@@ -194,7 +317,6 @@ namespace Poprygun
                 fs.Write(array);
             } */
         }
-
         public static BitmapImage DeserializeImage(string value) 
         {
             byte[] array = System.Convert.FromBase64String(JsonSerializer.Deserialize<string>((string)value));
@@ -209,22 +331,6 @@ namespace Poprygun
             return img;
         }
 
-        private void prevPageClick(object sender, MouseButtonEventArgs e)
-        {
-            if (pageInfo.pageIndex != 0) 
-            {
-                pageInfo.pageIndex -= 1;
-                UpdatePage();
-            }
-        }
-
-        private void nextPageClick(object sender, MouseButtonEventArgs e)
-        {
-            if (pageInfo.pageIndex != pageInfo.totalPages)
-            {
-                pageInfo.pageIndex += 1;
-                UpdatePage();
-            }
-        }
+        
     }
 }
