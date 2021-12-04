@@ -51,7 +51,7 @@ namespace Poprygun
         {
             HashSet<ProductSale> ps = (HashSet<ProductSale>)value;
             var query = ps.Sum(p => p.ProductCount) * 1000;
-
+            
             if (query >= 500000) return 25;
             else if (query >= 150000) return 20;
             else if (query >= 50000) return 10;
@@ -81,6 +81,22 @@ namespace Poprygun
             return DependencyProperty.UnsetValue;
         }
     }
+
+    public class RangeConverter : IValueConverter // конвертер значения элемента рассчёта скидки для изменения фона Item в ListView
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null) return false;
+            if (System.Convert.ToInt32(value) > 25) return true;
+            else return false;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return DependencyProperty.UnsetValue;
+        }
+    }
+
 
     public class PageInfo
     {
@@ -331,6 +347,17 @@ namespace Poprygun
             return img;
         }
 
-        
+        private void Click_AddAgent(object sender, RoutedEventArgs e)
+        {
+            
+            AgentWindow agentWindow = new AgentWindow();
+            agentWindow.ShowDialog();
+        }
+
+        private void Click_EditAgent(object sender, RoutedEventArgs e)
+        {
+            AgentWindow agentWindow = new AgentWindow((Agent)dataList.SelectedItem);
+            agentWindow.ShowDialog();
+        }
     }
 }

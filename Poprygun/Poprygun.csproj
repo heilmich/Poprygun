@@ -107,6 +107,9 @@
     <Compile Include="AgentType.cs">
       <DependentUpon>DB.tt</DependentUpon>
     </Compile>
+    <Compile Include="AgentWindow.xaml.cs">
+      <DependentUpon>AgentWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DB.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -142,6 +145,10 @@
     <Compile Include="Supplier.cs">
       <DependentUpon>DB.tt</DependentUpon>
     </Compile>
+    <Page Include="AgentWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

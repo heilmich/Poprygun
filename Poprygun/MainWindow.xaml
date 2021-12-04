@@ -10,6 +10,7 @@
         <local:SellsConverter x:Key="SellsConverter" />
         <local:DiscountConverter x:Key="DiscountConverter" />
         <local:ImageConverter x:Key="ImageConverter"/>
+        <local:RangeConverter x:Key="RangeConverter"/>
         <Style x:Key="PageLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="Padding" Value="7"/>
@@ -18,6 +19,11 @@
                     <Setter Property="Background" Value="#43DCFE"/>
                 </Trigger>
             </Style.Triggers>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="Transparent"></Setter>
+            <Setter Property="Padding" Value="5,2,5,2"></Setter>
+            
         </Style>
 
     </Window.Resources>
@@ -38,6 +44,11 @@
             <RowDefinition/>
             <RowDefinition Height="0.5*"/>
         </Grid.RowDefinitions>
+        <StackPanel VerticalAlignment="Bottom" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Orientation="Horizontal">
+            <Button Name="btnAddAgent" Click="Click_AddAgent">Добавить агента</Button>
+            <Button Name="btnEditAgent" Margin="20,0,0,0" Click="Click_EditAgent">Редактировать агента</Button>
+            <Button Name="btnEditPriorty" Margin="20,0,0,0" Visibility="Collapsed">Редактировать приоритет</Button>
+        </StackPanel>
         <TextBox Name="search_field" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Height="40" KeyDown="search_field_KeyDown" FontSize="14" VerticalContentAlignment="Center"></TextBox>
         <ComboBox Name="sortCB" SelectionChanged="SortChanged" SelectedIndex="0" Grid.Row="1" Grid.Column="3" Height="40" Margin="20,0,0,0">
             <ComboBox.ItemTemplate>
@@ -53,7 +64,12 @@
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
-        <ListView Name="dataList" ItemsSource="{Binding currentList, Mode=OneWay, IsAsync=True}" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Grid.RowSpan="3"  Background="#F9969E">
+        <ListView Name="dataList" ItemsSource="{Binding currentList, Mode=OneWay, IsAsync=True}"   SelectionMode="Multiple" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Grid.RowSpan="3"  Background="#F9969E" IsSynchronizedWithCurrentItem="True">
+            <ListView.Style>
+                <Style>
+                    
+                </Style>
+            </ListView.Style>
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
@@ -64,6 +80,7 @@
                 <DataTemplate x:Name="agentTemplate">
                     <Border BorderThickness="1" BorderBrush="Black" Width="Auto" Background="#fff">
                         <Grid Height="80" Margin="10" Width="Auto" >
+
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                                 <ColumnDefinition Width="4*"/>
@@ -83,8 +100,9 @@
                                     <Run Text="{Binding Priority, IsAsync=True}"></Run>
                                 </TextBlock>
                             </StackPanel>
-                            <TextBlock Name="Discount"  Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="16">
-                                <Run Text="{Binding ProductSale, Converter={StaticResource DiscountConverter}, IsAsync=True}"/>
+                            <TextBlock  Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="16">
+                                <Run Name="Discount" Text="{Binding ProductSale, Converter={StaticResource DiscountConverter}, ConverterParameter=Discount, IsAsync=True}">   
+                                </Run>
                                 <Run Text="%"/>
                             </TextBlock>
                         </Grid>
@@ -100,5 +118,6 @@
             </StackPanel>
             <TextBlock Name="nextPage" Style="{StaticResource PageLabel}" Text=">" MouseLeftButtonDown="nextPageClick"></TextBlock>
         </StackPanel>
+        
     </Grid>
 </Window>
