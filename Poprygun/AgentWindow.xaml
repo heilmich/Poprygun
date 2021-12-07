@@ -11,6 +11,7 @@
         <local:DiscountConverter x:Key="DiscountConverter" />
         <local:ImageConverter x:Key="ImageConverter"/>
         <local:RangeConverter x:Key="RangeConverter"/>
+        <local:ProductConverter x:Key="ProductConverter"/>
         <Style TargetType="TextBox" x:Key="PropertyBox">
             <Setter Property="MinWidth" Value="150"></Setter>
             <Setter Property="MaxWidth" Value="150"></Setter>
@@ -43,24 +44,28 @@
             <ColumnDefinition Width="0.5*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="0.6*"/>
+            <RowDefinition Height="0.5*"/>
             <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition Height="0.6*"/>
+            <RowDefinition Height="0.5*"/>
         </Grid.RowDefinitions>
         
-        <StackPanel Grid.Row="4" Grid.Column="3" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+        <StackPanel Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
             <Button Click="Click_SaveAgent">Сохранить агента</Button>
             <Button Margin="20,0,0,0">Удалить агента</Button>
         </StackPanel>
-        
-        <Image Source="{Binding Image, Converter={StaticResource ImageConverter}}" Grid.Row="1" Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Center"/>
 
-        <DataGrid Name="agentSells" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="3" AutoGenerateColumns="False">
+        <StackPanel Grid.Row="1" Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Image Source="{Binding Image, Converter={StaticResource ImageConverter}}" Height="100" />
+            <Button Name="btnOpenFile" Click="btnOpenFile_Click" Content="Изменить изображение" FontSize="10"></Button>
+            
+        </StackPanel>
+        
+        <DataGrid Name="agentSells" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="3" AutoGenerateColumns="False" CanUserAddRows="True" AddingNewItem="Add_AgentSells" RowEditEnding="AddAgentSells">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Название продукта" Binding="{Binding Product.Title, Mode=TwoWay}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Номер продукта"  Binding="{Binding ProductID, Mode=TwoWay}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Номер агента" Binding="{Binding AgentID, Mode=TwoWay}"></DataGridTextColumn>
                 <DataGridTextColumn Header="Дата продажи" Binding="{Binding SaleDate, Mode=TwoWay}"></DataGridTextColumn>
                 <DataGridTextColumn Header="Количество" Binding="{Binding ProductCount, Mode=TwoWay}"></DataGridTextColumn>
             </DataGrid.Columns>
@@ -68,7 +73,7 @@
         </DataGrid>
         
         
-        <StackPanel Name="agentList" Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="2" Grid.RowSpan="4" HorizontalAlignment="Right">
+        <StackPanel Name="agentList" Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="2" Grid.RowSpan="3" HorizontalAlignment="Right">
             
             <StackPanel Style="{StaticResource spProperty}" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0">
                 <TextBlock Style="{StaticResource PropertyBlock}" Text="Наименование" TextWrapping="Wrap"/>

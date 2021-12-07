@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Data.Entity;
 using System.IO;
@@ -50,7 +51,7 @@ namespace Poprygun
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             HashSet<ProductSale> ps = (HashSet<ProductSale>)value;
-            var query = ps.Sum(p => p.ProductCount) * 1000;
+            var query = ps.Sum(p => p.ProductCount) * 15000;
             
             if (query >= 500000) return 25;
             else if (query >= 150000) return 20;
@@ -172,24 +173,29 @@ namespace Poprygun
     public partial class MainWindow : Window
     {
 
-        public static List<Agent> agentList = new List<Agent>();    // список агентов
-        public Entities db = new Entities();                        // создание контекста базы данных
-        public PageInfo pageInfo = new PageInfo();                  // объект pageInfo с информацией о страницах
-        public SortItem currentSort;                                // индекс сортировки
-        public int filterIndex = 0;                                 // индекс фильтра, 0 - без фильтрации
-        public string searchQuery;                             // поисковый запрос
-        public List<AgentType> agentTypes = new List<AgentType>();  // лист с типами агентов
-        public List<SortItem> sortList = new List<SortItem>
+        public static ObservableCollection<Agent> agentList = new ObservableCollection<Agent>();    // список агентов
+        public Entities db = new Entities();                                                        // создание контекста базы данных
+        public PageInfo pageInfo = new PageInfo();                                                  // объект pageInfo с информацией о страницах
+        public SortItem currentSort;                                                                // индекс сортировки
+        public int filterIndex = 0;                                                                 // индекс фильтра, 0 - без фильтрации
+        public string searchQuery;                                                                  // поисковый запрос
+        public List<AgentType> agentTypes = new List<AgentType>();                                  // лист с типами агентов
+        public List<SortItem> sortList = new List<SortItem>                                         // лист с объектами сортировки
         {
-            new SortItem("ASC", "ID", "Без сортировки"),
-            new SortItem("ASC", "Title", "По возрастанию: наименование"),
-            new SortItem("DESC", "Title", "По убыванию: наименование"),
-            new SortItem("ASC", "ID", "По возрастанию: скидка"),
-            new SortItem("DESC", "ID", "По убыванию: скидка"),
-            new SortItem("ASC", "Priority", "По возрастанию: приоритет"),
-            new SortItem("DESC", "Priority", "По убыванию: приоритет")
+            new SortItem("ASC", "Agent.ID", "Без сортировки"),
+            new SortItem("ASC", "Agent.Title", "По возрастанию: наименование"),
+            new SortItem("DESC", "Agent.Title", "По убыванию: наименование"),
+            new SortItem("ASC", "( SELECT SUM(ProductCount) FROM ProductSale WHERE AgentID = Agent.ID )", "По возрастанию: скидка"),
+            new SortItem("DESC", "( SELECT SUM(ProductCount) FROM ProductSale WHERE AgentID = Agent.ID  )", "По убыванию: скидка"),
+            new SortItem("ASC", "Agent.Priority", "По возрастанию: приоритет"),
+            new SortItem("DESC", "Agent.Priority", "По убыванию: приоритет")
         };
-        
+
+        public static ObservableCollection<T> ToObservableCollection<T>(List<T> col)
+        {
+            return new ObservableCollection<T>(col);
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -212,27 +218,28 @@ namespace Poprygun
 
         public void UpdatePage() 
         {
-            dataList.ItemsSource = TakeData();
+            agentList = TakeData();
+            dataList.ItemsSource = agentList;
             Pagination();
         }
 
-        public List<Agent> TakeData() 
+        public ObservableCollection<Agent> TakeData() 
         {
             if (filterIndex == 0)
             {
-                return db.Agent.SqlQuery($"SELECT * FROM Agent " +
+                return new ObservableCollection<Agent>( db.Agent.SqlQuery($"SELECT * FROM Agent " + 
                         $"WHERE ( Agent.Title LIKE N'%{searchQuery}%' OR Agent.Email LIKE N'%{searchQuery}%' ) " +
-                        $"ORDER BY Agent.{currentSort.SortProperty} {currentSort.SortDir} " +
+                        $"ORDER BY {currentSort.SortProperty} {currentSort.SortDir} " +
                         $"OFFSET {(pageInfo.pageIndex - 1) * pageInfo.pageSize} ROWS " +
-                        $"FETCH NEXT {pageInfo.pageSize} ROWS ONLY; ").ToList();
+                        $"FETCH NEXT {pageInfo.pageSize} ROWS ONLY; "));
             }
             else 
             {
-                return db.Agent.SqlQuery($"SELECT * FROM Agent " +
+                return new ObservableCollection<Agent>( db.Agent.SqlQuery($"SELECT * FROM Agent " +
                         $"WHERE Agent.AgentTypeID = {filterIndex} AND ( Agent.Title LIKE N'%{searchQuery}%' OR Agent.Email LIKE N'%{searchQuery}%' ) " +
-                        $"ORDER BY Agent.{currentSort.SortProperty} {currentSort.SortDir} " +
+                        $"ORDER BY {currentSort.SortProperty} {currentSort.SortDir} " +
                         $"OFFSET {(pageInfo.pageIndex - 1) * pageInfo.pageSize} ROWS " +
-                        $"FETCH NEXT {pageInfo.pageSize} ROWS ONLY; ").ToList();
+                        $"FETCH NEXT {pageInfo.pageSize} ROWS ONLY; "));
             }
         }
 
@@ -252,7 +259,7 @@ namespace Poprygun
                     TextBlock page = new TextBlock();
                     page.Text = Convert.ToString(i);
                     page.Style = this.FindResource("PageLabel") as Style;
-                    page.MouseLeftButtonDown += selectPageClick;
+                    page.MouseLeftButtonDown += SelectPageClick;
                     if (i == pageInfo.pageIndex) page.TextDecorations = TextDecorations.Underline;
 
                     pageList.Children.Add(page);
@@ -261,7 +268,7 @@ namespace Poprygun
 
 
         }
-        private void search_field_KeyDown(object sender, KeyEventArgs e)
+        private void Search_field_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter) return;
             searchQuery = search_field.Text;
@@ -278,7 +285,7 @@ namespace Poprygun
             currentSort = (SortItem)((ComboBox)sender).SelectedItem;
             UpdatePage();
         }
-        private void prevPageClick(object sender, MouseButtonEventArgs e)
+        private void PrevPageClick(object sender, MouseButtonEventArgs e)
         {
             if (pageInfo.pageIndex != 0)
             {
@@ -286,7 +293,7 @@ namespace Poprygun
                 UpdatePage();
             }
         }
-        private void nextPageClick(object sender, MouseButtonEventArgs e)
+        private void NextPageClick(object sender, MouseButtonEventArgs e)
         {
             if (pageInfo.pageIndex != pageInfo.totalPages)
             {
@@ -294,12 +301,26 @@ namespace Poprygun
                 UpdatePage();
             }
         }
-        private void selectPageClick(object sender, MouseButtonEventArgs e)
+        private void SelectPageClick(object sender, MouseButtonEventArgs e)
         {
             pageInfo.pageIndex = Convert.ToInt32(((TextBlock)sender).Text);
             UpdatePage();
 
         }
+        private void Click_AddAgent(object sender, RoutedEventArgs e)
+        {
+            AgentWindow agentWindow = new AgentWindow();
+            agentWindow.ShowDialog();
+        }
+
+        private void Click_EditAgent(object sender, RoutedEventArgs e)
+        {
+            if ((Agent)dataList.SelectedItem == null) return;
+                AgentWindow agentWindow = new AgentWindow((Agent)dataList.SelectedItem);
+            agentWindow.ShowDialog();
+            UpdatePage();
+        }
+
         public void SerializeImages(int num)
         {
             string path = @"D:\agents\";
@@ -347,17 +368,6 @@ namespace Poprygun
             return img;
         }
 
-        private void Click_AddAgent(object sender, RoutedEventArgs e)
-        {
-            
-            AgentWindow agentWindow = new AgentWindow();
-            agentWindow.ShowDialog();
-        }
-
-        private void Click_EditAgent(object sender, RoutedEventArgs e)
-        {
-            AgentWindow agentWindow = new AgentWindow((Agent)dataList.SelectedItem);
-            agentWindow.ShowDialog();
-        }
+        
     }
 }

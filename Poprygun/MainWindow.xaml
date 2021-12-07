@@ -20,10 +20,14 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-        <Style TargetType="Button">
+        <Style x:Key="styleButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"></Setter>
             <Setter Property="Padding" Value="5,2,5,2"></Setter>
-            
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="true">
+                    <Setter Property="Background" Value="#43DCFE"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
     </Window.Resources>
@@ -45,19 +49,19 @@
             <RowDefinition Height="0.5*"/>
         </Grid.RowDefinitions>
         <StackPanel VerticalAlignment="Bottom" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Orientation="Horizontal">
-            <Button Name="btnAddAgent" Click="Click_AddAgent">Добавить агента</Button>
-            <Button Name="btnEditAgent" Margin="20,0,0,0" Click="Click_EditAgent">Редактировать агента</Button>
-            <Button Name="btnEditPriorty" Margin="20,0,0,0" Visibility="Collapsed">Редактировать приоритет</Button>
+            <Button Name="btnAddAgent" Style="{StaticResource styleButton}" Click="Click_AddAgent">Добавить агента</Button>
+            <Button Name="btnEditAgent" Style="{StaticResource styleButton}" Margin="20,0,0,0" Click="Click_EditAgent">Редактировать агента</Button>
+            <Button Name="btnEditPriorty" Style="{StaticResource styleButton}" Margin="20,0,0,0" Visibility="Collapsed">Редактировать приоритет</Button>
         </StackPanel>
-        <TextBox Name="search_field" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Height="40" KeyDown="search_field_KeyDown" FontSize="14" VerticalContentAlignment="Center"></TextBox>
-        <ComboBox Name="sortCB" SelectionChanged="SortChanged" SelectedIndex="0" Grid.Row="1" Grid.Column="3" Height="40" Margin="20,0,0,0">
+        <TextBox Name="search_field" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Height="35" KeyDown="Search_field_KeyDown" FontSize="14" VerticalContentAlignment="Center"></TextBox>
+        <ComboBox Name="sortCB" SelectionChanged="SortChanged" SelectedIndex="0" Grid.Row="1" Grid.Column="3" Height="35" Margin="20,0,0,0">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <ComboBoxItem  Content="{Binding SortTitle}"></ComboBoxItem>
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
-        <ComboBox Name="filterCB"  ItemsSource="{Binding agentTypes}" SelectionChanged="FilterChanged" SelectedIndex="0" Grid.Row="1" Grid.Column="4" Height="40" Margin="20,0,0,0">
+        <ComboBox Name="filterCB"  ItemsSource="{Binding agentTypes}" SelectionChanged="FilterChanged" SelectedIndex="0" Grid.Row="1" Grid.Column="4" Height="35" Margin="20,0,0,0">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <ComboBoxItem Content="{Binding Title}"></ComboBoxItem>
@@ -74,13 +78,14 @@
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
                     <Setter Property="Margin" Value="5"></Setter>
+                    
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate x:Name="agentTemplate">
                     <Border BorderThickness="1" BorderBrush="Black" Width="Auto" Background="#fff">
                         <Grid Height="80" Margin="10" Width="Auto" >
-
+  
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                                 <ColumnDefinition Width="4*"/>
@@ -89,19 +94,19 @@
                             <Image Source="{Binding Image, Converter={StaticResource ImageConverter}, IsAsync=True}" Width="100" Grid.Column="0"></Image>
                             <StackPanel Grid.Column="1">
                                 <TextBlock Name="TypeName" FontSize="16">
-                                    <Run Text="{Binding AgentType.Title, IsAsync=True}"></Run>
+                                    <Run Text="{Binding AgentType.Title}"></Run>
                                     <Run Text=" | "></Run>
                                     <Run Text="{Binding Title, IsAsync=True}"></Run>
                                 </TextBlock>
-                                <TextBlock Text="{Binding ProductSale, Converter={StaticResource SellsConverter}, IsAsync=True}"></TextBlock>
+                                <TextBlock Text="{Binding ProductSale, Converter={StaticResource SellsConverter}}"></TextBlock>
                                 <TextBlock Name="Phone" Text="{Binding Phone}"></TextBlock>
                                 <TextBlock  Name="Priority">
                                     <Run Text="Приоритетность: "></Run>
-                                    <Run Text="{Binding Priority, IsAsync=True}"></Run>
+                                    <Run Text="{Binding Priority}"></Run>
                                 </TextBlock>
                             </StackPanel>
                             <TextBlock  Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="16">
-                                <Run Name="Discount" Text="{Binding ProductSale, Converter={StaticResource DiscountConverter}, ConverterParameter=Discount, IsAsync=True}">   
+                                <Run Name="Discount" Text="{Binding ProductSale, Converter={StaticResource DiscountConverter}, ConverterParameter=Discount}">   
                                 </Run>
                                 <Run Text="%"/>
                             </TextBlock>
@@ -112,11 +117,11 @@
             </ListView.ItemTemplate>
         </ListView>
         <StackPanel Grid.Row="5" Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right">
-            <TextBlock Name="prevPage" Style="{StaticResource PageLabel}" Text="&lt;" MouseLeftButtonDown="prevPageClick"></TextBlock>
+            <TextBlock Name="prevPage" Style="{StaticResource PageLabel}" Text="&lt;" MouseLeftButtonDown="PrevPageClick"></TextBlock>
             <StackPanel Name="pageList" Orientation="Horizontal">
                 
             </StackPanel>
-            <TextBlock Name="nextPage" Style="{StaticResource PageLabel}" Text=">" MouseLeftButtonDown="nextPageClick"></TextBlock>
+            <TextBlock Name="nextPage" Style="{StaticResource PageLabel}" Text=">" MouseLeftButtonDown="NextPageClick"></TextBlock>
         </StackPanel>
         
     </Grid>
