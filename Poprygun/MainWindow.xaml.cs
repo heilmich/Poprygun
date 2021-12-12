@@ -18,7 +18,7 @@ using System.Windows.Shapes;
 using System.Globalization;
 using System.ComponentModel;
 using System.Text.Json;
-using System.Drawing;
+
 using System.Runtime.CompilerServices;
 
 
@@ -51,8 +51,8 @@ namespace Poprygun
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             HashSet<ProductSale> ps = (HashSet<ProductSale>)value;
-            var query = ps.Sum(p => p.ProductCount) * 15000;
-            
+            var query = ps.Sum(p => p.ProductCount) * 15000;        // умножил на 15000, чтобы был больший разброс в скидках
+
             if (query >= 500000) return 25;
             else if (query >= 150000) return 20;
             else if (query >= 50000) return 10;
@@ -83,7 +83,7 @@ namespace Poprygun
         }
     }
 
-    public class RangeConverter : IValueConverter // конвертер значения элемента рассчёта скидки для изменения фона Item в ListView
+    public class RangeConverter : IValueConverter // НЕ ИСПОЛЬЗУЕТСЯ конвертер значения элемента рассчёта скидки для изменения фона Item в ListView
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -113,8 +113,8 @@ namespace Poprygun
 
     public class SortItem : INotifyPropertyChanged
     {
-        private string sortDir;
-        public string SortDir                                             // направление сортировки
+        private string sortDir;     // направление сортировки
+        public string SortDir                                             
         {
             get
             {  return sortDir; }
@@ -127,8 +127,8 @@ namespace Poprygun
                 }
             }
         }
-        private string sortProperty;                                        // свойство сортировки
-        public string SortProperty                                             // направление сортировки
+        private string sortProperty;      // свойство(запрос) сортировки                                  
+        public string SortProperty                                             
         {
             get
             { return sortProperty; }
@@ -141,7 +141,7 @@ namespace Poprygun
                 }
             }
         }
-        private string sortTitle;
+        private string sortTitle;   // наименование сортировки
         public string SortTitle
         {
             get
@@ -169,6 +169,7 @@ namespace Poprygun
                 PropertyChanged(this, new PropertyChangedEventArgs(prop));
         }
     }
+
 
     public partial class MainWindow : Window
     {
@@ -204,9 +205,9 @@ namespace Poprygun
             TakeAgentTypesList();
         }
 
-        public async void TakeAgentTypesList() 
+        public async void TakeAgentTypesList()  // функция для получения типов агентов из БД
         {
-            AgentType type = new AgentType { ID = 0, Title = "Все типы" };
+            AgentType type = new AgentType { ID = 0, Title = "Все типы" }; 
             agentTypes.Add(type);
             await db.AgentType.ForEachAsync(p => 
             { 
@@ -223,7 +224,7 @@ namespace Poprygun
             Pagination();
         }
 
-        public ObservableCollection<Agent> TakeData() 
+        public ObservableCollection<Agent> TakeData()   // функция для получения данных об агентах из БД
         {
             if (filterIndex == 0)
             {
@@ -243,7 +244,7 @@ namespace Poprygun
             }
         }
 
-        public void Pagination() 
+        public void Pagination()    // функция разбивки на страницы
         {
             pageList.Children.Clear(); // чистим список элементов
 
@@ -268,19 +269,19 @@ namespace Poprygun
 
 
         }
-        private void Search_field_KeyDown(object sender, KeyEventArgs e)
+        private void Search_field_KeyDown(object sender, KeyEventArgs e) // поиск, вызывается при нажатии на Enter
         {
             if (e.Key != Key.Enter) return;
             searchQuery = search_field.Text;
             UpdatePage();
         }
-        private void FilterChanged(object sender, SelectionChangedEventArgs e)
+        private void FilterChanged(object sender, SelectionChangedEventArgs e) // изменение фильтра
         {
             pageInfo.pageIndex = 1;
             filterIndex = ((ComboBox)sender).SelectedIndex;
             UpdatePage();
         }
-        private void SortChanged(object sender, SelectionChangedEventArgs e)
+        private void SortChanged(object sender, SelectionChangedEventArgs e) // изменение сортировки
         {
             currentSort = (SortItem)((ComboBox)sender).SelectedItem;
             UpdatePage();
@@ -309,52 +310,19 @@ namespace Poprygun
         }
         private void Click_AddAgent(object sender, RoutedEventArgs e)
         {
-            AgentWindow agentWindow = new AgentWindow();
+            AgentWindow agentWindow = new AgentWindow(db);
             agentWindow.ShowDialog();
         }
 
         private void Click_EditAgent(object sender, RoutedEventArgs e)
         {
             if ((Agent)dataList.SelectedItem == null) return;
-                AgentWindow agentWindow = new AgentWindow((Agent)dataList.SelectedItem);
+                AgentWindow agentWindow = new AgentWindow((Agent)dataList.SelectedItem, db);
             agentWindow.ShowDialog();
             UpdatePage();
         }
 
-        public void SerializeImages(int num)
-        {
-            string path = @"D:\agents\";
-            string pic;
-            DirectoryInfo dirInfo = new DirectoryInfo(path);
-
-            using (FileStream fs = File.OpenRead($"{path}agent_{num}.png"))
-            {
-                byte[] array = new byte[fs.Length];
-                fs.Read(array, 0, array.Length);
-
-                pic = JsonSerializer.Serialize(array);
-                using (Entities db = new Entities())
-                {
-                    Agent agent = db.Agent.Where(p => p.Logo == "agent_" + Convert.ToString(num) + ".png").FirstOrDefault();
-                    if (agent == null) return;
-                    agent.Image = pic;
-                    
-                    db.SaveChanges();
-                }
-                
-                
-            }
-
-
-            /* string path2 = @"C:\Users\HeilMich\source\repos\Poprygun\";
-            using (FileStream fs = File.Open(($"{path2}agent_{num}.png"), FileMode.OpenOrCreate))
-            {
-                byte[] array = new byte[fs.Length];
-                array = JsonSerializer.Deserialize<byte[]>(pic);
-                fs.Write(array);
-            } */
-        }
-        public static BitmapImage DeserializeImage(string value) 
+        public static BitmapImage DeserializeImage(string value) // десериализация json строки из БД в изображение
         {
             byte[] array = System.Convert.FromBase64String(JsonSerializer.Deserialize<string>((string)value));
             MemoryStream ms = new MemoryStream(array, 0, array.Length);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Data.Entity;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -43,38 +44,100 @@ namespace Poprygun
 
     public partial class AgentWindow : Window
     {
-        Entities db = new Entities();
-        ObservableCollection<ProductSale> sellsList = new ObservableCollection<ProductSale>();
-        Agent currentAgent = new Agent();
-        public AgentWindow()
+        public Entities db;
+        public List<AgentType> agentTypes = new List<AgentType>();
+        public ObservableCollection<ProductSale> sellsList = new ObservableCollection<ProductSale>();
+        public static Agent currentAgent = new Agent();
+        public static bool isCreate = true;
+        public AgentWindow(Entities db)
         {
+            this.db = db;
             InitializeComponent();
-            dataGrid.DataContext = currentAgent;
+            UpdateLists();
+            
         }
 
-        public AgentWindow(Agent agent)
+        public AgentWindow(Agent agent, Entities db)
         {
+            this.db = db;
+            isCreate = false;
             InitializeComponent();
-            currentAgent = db.Agent.Where(p => p.ID == agent.ID).FirstOrDefault();
-            agentSells.ItemsSource = currentAgent.ProductSale;
-            dataGrid.DataContext = currentAgent;
+            currentAgent = agent;
+            UpdateLists();
         }
+
+        public void UpdateLists() 
+        {
+            dataGrid.DataContext = currentAgent;
+            agentSells.ItemsSource = new ObservableCollection<ProductSale>(currentAgent.ProductSale);
+                
+        }
+
 
         private void Click_SaveAgent(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                if (isCreate == true)
+                {
+                    
+                    currentAgent.AgentTypeID = db.AgentType.Where(p => p.Title == tbAgentType.Text).FirstOrDefault().ID;
+                    db.Agent.Add(currentAgent);
+                }
+                db.SaveChanges();
+                Close();
+            }
+            catch (Exception ex)
+            {
+                
+                MessageBox.Show("Возникла ошибка при сохранении агента. Проверьте все поля и попробуйте ещё раз.\nКод ошибки: " + ex.Message, "\n" + ex.InnerException);
+            }
+        }
+        private void Click_RemoveAgent(object sender, RoutedEventArgs e)
+        {
+            if (db.ProductSale.Any( p => p.AgentID == currentAgent.ID) != false) 
+            {
+                MessageBox.Show("Нельзя удалить агента, если у него есть записи в истории продаж");
+                return;
+            }
+
+            try {
+            db.AgentPriorityHistory.RemoveRange(currentAgent.AgentPriorityHistory);
+            db.Shop.RemoveRange(currentAgent.Shop);
+            db.Agent.Remove(currentAgent);
             db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show("Возникла ошибка при удалении агента. \nКод ошибки: " + ex.Message, "\n" + ex.InnerException);
+            }
+
             Close();
         }
 
-        private void Add_AgentSells(object sender, AddingNewItemEventArgs e)
+        private void Click_RemoveSell(object sender, RoutedEventArgs e)
         {
-            
+            try
+            {
+                ProductSale ps = (ProductSale)agentSells.SelectedItem;
+                db.ProductSale.Remove(ps);
+                db.SaveChanges();
+                agentSells.ItemsSource = null;
+                UpdateLists();
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show("Возникла ошибка при удалении продажи. \nКод ошибки: " + ex.Message, "\n" + ex.InnerException);
+            }
         }
 
         private void AddAgentSells(object sender, DataGridRowEditEndingEventArgs e)
         {
             ProductSale productsale = ((ProductSale)e.Row.Item);
             productsale.AgentID = currentAgent.ID;
+            productsale.Agent = currentAgent;
             db.ProductSale.Add(productsale);
         }
 
@@ -105,5 +168,6 @@ namespace Poprygun
                 currentAgent.Image = pic;
             }
         }
+
     }
 }

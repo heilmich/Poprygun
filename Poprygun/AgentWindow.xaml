@@ -53,26 +53,25 @@
         
         <StackPanel Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
             <Button Click="Click_SaveAgent">Сохранить агента</Button>
-            <Button Margin="20,0,0,0">Удалить агента</Button>
+            <Button Margin="20,0,0,0" Click="Click_RemoveAgent">Удалить агента</Button>
         </StackPanel>
 
         <StackPanel Grid.Row="1" Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Image Source="{Binding Image, Converter={StaticResource ImageConverter}}" Height="100" />
+            <Image Name="agentImage" Source="{Binding Image, Converter={StaticResource ImageConverter}, Mode=TwoWay}" Height="100" />
             <Button Name="btnOpenFile" Click="btnOpenFile_Click" Content="Изменить изображение" FontSize="10"></Button>
             
         </StackPanel>
-        
-        <DataGrid Name="agentSells" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="3" AutoGenerateColumns="False" CanUserAddRows="True" AddingNewItem="Add_AgentSells" RowEditEnding="AddAgentSells">
+
+        <DataGrid Name="agentSells"  Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="2" RowEditEnding="AddAgentSells" AutoGenerateColumns="False">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Номер продукта"  Binding="{Binding ProductID, Mode=TwoWay}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Номер агента" Binding="{Binding AgentID, Mode=TwoWay}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Номер продукта" x:Name="productCB" Binding="{Binding ProductID, Mode=TwoWay}"></DataGridTextColumn>
                 <DataGridTextColumn Header="Дата продажи" Binding="{Binding SaleDate, Mode=TwoWay}"></DataGridTextColumn>
                 <DataGridTextColumn Header="Количество" Binding="{Binding ProductCount, Mode=TwoWay}"></DataGridTextColumn>
             </DataGrid.Columns>
-            
         </DataGrid>
-        
-        
+
+        <Button Content="Удалить запись" Click="Click_RemoveSell" Grid.Column="1" Grid.Row="3" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Left"/>
+
         <StackPanel Name="agentList" Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="2" Grid.RowSpan="3" HorizontalAlignment="Right">
             
             <StackPanel Style="{StaticResource spProperty}" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0">
@@ -82,11 +81,11 @@
             
             <StackPanel Style="{StaticResource spProperty}" Orientation="Horizontal" HorizontalAlignment="Right">
                 <TextBlock Style="{StaticResource PropertyBlock}" Text="Тип агента"/>
-                <TextBox Style="{StaticResource PropertyBox}" Text="{Binding AgentType.Title, Mode=TwoWay}"/>
+                <TextBox Name="tbAgentType" Style="{StaticResource PropertyBox}" Text="{Binding AgentType.Title, Mode=TwoWay}"/>
             </StackPanel>
             
             <StackPanel Style="{StaticResource spProperty}" Orientation="Horizontal" HorizontalAlignment="Right">
-                <TextBlock Style="{StaticResource PropertyBlock}" Text="Наименование"/>
+                <TextBlock Style="{StaticResource PropertyBlock}" Text="Приоритет"/>
                 <TextBox Style="{StaticResource PropertyBox}" Text="{Binding Priority, Mode=TwoWay}"/>
             </StackPanel>
             
