@@ -217,6 +217,7 @@
       <DependentUpon>DB.edmx</DependentUpon>
       <LastGenOutput>DB.cs</LastGenOutput>
     </Content>
+    <Resource Include="Попрыженок.ico" />
     <Resource Include="picture.png" />
   </ItemGroup>
   <ItemGroup>

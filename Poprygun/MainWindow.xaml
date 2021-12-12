@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Poprygun"
         mc:Ignorable="d"
-        Title="MainWindow" MinHeight="600" MinWidth="800" FontFamily="Comic Sans MS">
+        Title="Попрыгун" MinHeight="600" MinWidth="800" Icon="Попрыженок.ico" FontFamily="Comic Sans MS">
     <Window.Resources>
         <local:SellsConverter x:Key="SellsConverter" />
         <local:DiscountConverter x:Key="DiscountConverter" />
